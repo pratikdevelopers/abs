@@ -51,6 +51,7 @@ class AuthorizeCreationController extends Controller
         $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
         $requestType = $request->input('requestType') ?: 'Creation';
         $purpose = $request->input('purpose') ?: 'LOAN';
+        $segment = $request->input('segment') ?: 'Retail';
         $boDDARefNo = $request->input('boDDARefNo') ?: strtoupper(Str::random(35));
         
         // Generate boTransactionRefNo if not provided
@@ -58,7 +59,7 @@ class AuthorizeCreationController extends Controller
         // Client ID (15) + Datetime YYYYMMDDhhmmss (14) + Random digits (6) = 35 characters total
         $boTransactionRefNo = $request->input('boTransactionRefNo');
         if (empty($boTransactionRefNo)) {
-            // Get Client ID and pad to 15 characters (left-padded with zeros)
+            // Get Client ID and pad to 15 characters (left-padded with zeros as per original logic)
             $client_id_padded = str_pad(substr($clientID, 0, 15), 15, '0', STR_PAD_LEFT);
             
             // Generate datetime in YYYYMMDDhhmmss format (14 characters)
@@ -103,7 +104,7 @@ class AuthorizeCreationController extends Controller
         $signKeyAlias = $request->input('signKeyAlias') ?: ($clientConfig['sign_key_alias'] ?? '');
 
         // Build signature parameters in correct order, excluding empty optional fields
-        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo, $purpose);
+        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo, $purpose, $segment);
 
         // Generate signature
         $signature = $this->generateSignature($signatureParams, $privateKeyPath, $passphrase, $issuerFingerprint);
@@ -112,7 +113,7 @@ class AuthorizeCreationController extends Controller
         }
 
         // Prepare request parameters for API call
-        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo, $purpose);
+        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo, $purpose, $segment);
 
         // Make API request
         return $this->makeApiRequest($requestParams, $clientConfig, $requestId);
@@ -121,7 +122,7 @@ class AuthorizeCreationController extends Controller
     /**
      * Build signature parameters in correct order, excluding empty optional fields
      */
-    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo, string $purpose): string
+    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo, string $purpose, string $segment): string
     {
         $params = [
             'clientID' => $clientID,
@@ -138,15 +139,7 @@ class AuthorizeCreationController extends Controller
         $params['boTransactionRefNo'] = $boTransactionRefNo;
         $params['requestType'] = $requestType;
         $params['purpose'] = $purpose;
-
-        // Add optional parameters if not empty
-        $optionalParams = ['segment'];
-        foreach ($optionalParams as $param) {
-            $value = $request->input($param);
-            if (!empty($value)) {
-                $params[$param] = $value;
-            }
-        }
+        $params['segment'] = $segment;
 
         return http_build_query($params, '', '&', PHP_QUERY_RFC3986);
     }
@@ -176,7 +169,7 @@ class AuthorizeCreationController extends Controller
     /**
      * Build request parameters for API call
      */
-    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo, string $purpose): array
+    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo, string $purpose, string $segment): array
     {
         $params = [
             'clientID' => $clientID,
@@ -194,15 +187,7 @@ class AuthorizeCreationController extends Controller
         $params['boTransactionRefNo'] = $boTransactionRefNo;
         $params['requestType'] = $requestType;
         $params['purpose'] = $purpose;
-
-        // Add optional parameters if provided
-        $optionalParams = ['segment'];
-        foreach ($optionalParams as $param) {
-            $value = $request->input($param);
-            if (!empty($value)) {
-                $params[$param] = $value;
-            }
-        }
+        $params['segment'] = $segment;
 
         return $params;
     }
@@ -226,7 +211,7 @@ class AuthorizeCreationController extends Controller
         $http = Http::withOptions([
             'cert' => storage_path('app/certs/uobuat_sivren_org.crt'),
             'ssl_key' => storage_path('app/certs/uobuat_sivren_org.pem'),
-        ]);
+        ])->withHeaders($headers);
 
         $response = $http->get($url, $requestParams);
 
