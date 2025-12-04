@@ -50,7 +50,7 @@ class AuthorizeCreationController extends Controller
         $applicantBankCode = $request->input('applicantBankCode') ?: 'UOVBSGSGXXX';
         $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
         $requestType = $request->input('requestType') ?: 'Creation';
-        $requestType = $request->input('boDDARefNo') ?: Str::generated(35);
+        $requestType = $request->input('boDDARefNo') ?: Str::random(35);
         
         // Generate boTransactionRefNo if not provided
         // Format: {clientID}{year_last_3_digits}{timestamp}{sequence}
