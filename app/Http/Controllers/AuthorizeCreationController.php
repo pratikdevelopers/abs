@@ -52,8 +52,8 @@ class AuthorizeCreationController extends Controller
         $requestType = $request->input('requestType') ?: 'Creation';
         $purpose = $request->input('purpose') ?: 'LOAN';
         $segment = $request->input('segment') ?: 'Retail';
-        $boDDARefNo = $request->input('boDDARefNo') ?: strtoupper(Str::random(35));
-        
+        $boDDARefNo = $request->input('boDDARefNo') ?: str_replace('.', '', uniqid('eDDA', true));
+
         // Generate boTransactionRefNo if not provided
         // Format: {clientID}{datetime}{random_digits}
         // Client ID (15) + Datetime YYYYMMDDhhmmss (14) + Random digits (6) = 35 characters total
@@ -61,13 +61,13 @@ class AuthorizeCreationController extends Controller
         if (empty($boTransactionRefNo)) {
             // Get Client ID and pad to 15 characters (left-padded with zeros as per original logic)
             $client_id_padded = str_pad(substr($clientID, 0, 15), 15, '0', STR_PAD_LEFT);
-            
+
             // Generate datetime in YYYYMMDDhhmmss format (14 characters)
             $datetime = date('YmdHis');
-            
+
             // Generate 6 random digits (left-padded with zeros)
             $random_digits = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
-            
+
             // Combine: Client ID (15) + Datetime (14) + Random digits (6) = 35 characters total
             $boTransactionRefNo = $client_id_padded . $datetime . $random_digits;
         }
