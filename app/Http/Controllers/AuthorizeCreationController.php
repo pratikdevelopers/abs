@@ -16,7 +16,7 @@ class AuthorizeCreationController extends Controller
         $validator = Validator::make($request->all(), [
             'client_slug' => 'required|string',
             'applicantBankCode' => 'nullable|string|min:1|max:35',
-            'boName' => 'required|string|max:140',
+            'boName' => 'nullable|string|max:140',
             'boTransactionRefNo' => 'nullable|string|min:35|max:35',
             'clientID' => 'nullable|string|min:15|max:15',
             'purpose' => 'nullable|string|in:LOAN',
