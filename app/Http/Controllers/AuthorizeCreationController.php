@@ -194,23 +194,10 @@ class AuthorizeCreationController extends Controller
     {
         $url = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
 
-        $headers = [
-            // 'Content-Type' => 'application/json',
-            'clientID' => $clientConfig['client_id'],
-            'requestID' => $requestId,
-            'x-api-key' => $clientConfig['x-api-key'],
-            'aggregatorKeyAlias' => $clientConfig['aggregator_key_alias'],
-        ];
-
-        // Add optional signKeyAlias if available
-        if (!empty($clientConfig['sign_key_alias'])) {
-            $headers['signKeyAlias'] = $clientConfig['sign_key_alias'];
-        }
-
         $http = Http::withOptions([
             'cert' => storage_path('app/certs/uobuat_sivren_org.crt'),
             'ssl_key' => storage_path('app/certs/uobuat_sivren_org.pem'),
-        ])->withHeaders($headers);
+        ]);
 
         // Append query string to URL
         $fullUrl = $url . '?' . $requestParamsString;
@@ -220,7 +207,6 @@ class AuthorizeCreationController extends Controller
             return response()->json([
                 'request_data' => [
                     'url' => $fullUrl,
-                    'headers' => $headers,
                     'request_params_string' => $requestParamsString,
                     'timestamp' => now()->format('Y-m-d H:i:s'),
                 ],
