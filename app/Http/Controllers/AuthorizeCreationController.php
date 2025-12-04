@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -11,7 +13,7 @@ use App\Services\GpgService;
 
 class AuthorizeCreationController extends Controller
 {
-    public function createAuthorize(Request $request): JsonResponse
+    public function createAuthorize(Request $request): JsonResponse|RedirectResponse
     {
         $validator = Validator::make($request->all(), [
             'client_slug' => 'required|string',
@@ -191,7 +193,7 @@ class AuthorizeCreationController extends Controller
      * Make HTTP request to authorize creation API using cURL
      * Follows redirects and returns the effective URL
      */
-    private function makeApiRequest(string $requestParamsString, array $clientConfig, string $requestId): JsonResponse
+    private function makeApiRequest(string $requestParamsString, array $clientConfig, string $requestId): JsonResponse|RedirectResponse
     {
         $url = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         
@@ -266,13 +268,8 @@ class AuthorizeCreationController extends Controller
             ], $httpCode);
         }
 
-        return response()->json([
-            'message' => 'Authorize creation successful',
-            'data' => [
-                'authorization_url' => $effectiveUrl,
-                'original_url' => $fullUrl,
-            ],
-        ]);
+        // Redirect to the authorization URL
+        return Redirect::to($effectiveUrl);
     }
 
     /**
