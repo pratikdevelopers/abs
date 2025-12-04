@@ -17,11 +17,11 @@ class AuthorizeCreationController extends Controller
             'client_slug' => 'required|string',
             'applicantBankCode' => 'nullable|string|min:1|max:35',
             'boName' => 'required|string|max:140',
-            'boTransactionRefNo' => 'required|string|min:35|max:35',
-            'clientID' => 'required|string|min:15|max:15',
+            'boTransactionRefNo' => 'nullable|string|min:35|max:35',
+            'clientID' => 'nullable|string|min:15|max:15',
             'purpose' => 'nullable|string|in:LOAN',
             'requestID' => 'nullable|string|min:36|max:36',
-            'requestType' => 'required|string|in:Creation',
+            'requestType' => 'nullable|string|in:Creation',
             'segment' => 'required|string|in:Retail',
             'nonce' => 'nullable|string|min:20|max:20',
             'Timestamp' => 'nullable|string',
@@ -43,6 +43,25 @@ class AuthorizeCreationController extends Controller
             ], 422);
         }
         $clientConfig = $clientConfig[env('APP_ENV')];
+
+        // Set backend-generated values
+        $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
+        $requestType = $request->input('requestType') ?: 'Creation';
+        
+        // Generate boTransactionRefNo if not provided
+        // Format: {clientID}{year_last_3_digits} {timestamp}{sequence}
+        // Example: BOSIN1992001COR202 10303101010123456 (35 chars total)
+        // clientID (15) + year (3) + space (1) + timestamp+sequence (16) = 35
+        $boTransactionRefNo = $request->input('boTransactionRefNo');
+        if (empty($boTransactionRefNo)) {
+            $now = now();
+            $yearLast3 = substr($now->format('Y'), -3); // Last 3 digits of year (e.g., 202 from 2024)
+            $timestamp = $now->format('His'); // HHMMSS (6 chars)
+            $microseconds = str_pad((string) $now->micro, 3, '0', STR_PAD_LEFT); // 3 chars
+            $sequence = str_pad((string) rand(1000000, 9999999), 7, '0', STR_PAD_LEFT); // 7 chars
+            // Total: clientID (15) + year (3) + space (1) + timestamp (6) + microseconds (3) + sequence (7) = 35
+            $boTransactionRefNo = $clientID . $yearLast3 . ' ' . $timestamp . $microseconds . $sequence;
+        }
 
         $pgpConfig = $clientConfig['pgp'] ?? [];
         if (empty($pgpConfig)) {
@@ -68,7 +87,7 @@ class AuthorizeCreationController extends Controller
         $signKeyAlias = $request->input('signKeyAlias') ?: ($clientConfig['sign_key_alias'] ?? '');
 
         // Build signature parameters in correct order, excluding empty optional fields
-        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias);
+        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType);
 
         // Generate signature
         $signature = $this->generateSignature($signatureParams, $privateKeyPath, $passphrase, $issuerFingerprint);
@@ -77,7 +96,7 @@ class AuthorizeCreationController extends Controller
         }
 
         // Prepare request parameters for API call
-        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature);
+        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType);
 
         // Make API request
         return $this->makeApiRequest($requestParams, $clientConfig, $requestId);
@@ -86,18 +105,22 @@ class AuthorizeCreationController extends Controller
     /**
      * Build signature parameters in correct order, excluding empty optional fields
      */
-    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias): string
+    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType): string
     {
         $params = [
-            'clientID' => $request->input('clientID'),
+            'clientID' => $clientID,
             'requestID' => $requestId,
             'nonce' => $nonce,
             'timestamp' => $timestamp,
             'signKeyAlias' => $signKeyAlias,
         ];
 
+        // Add backend-set required parameters
+        $params['boTransactionRefNo'] = $boTransactionRefNo;
+        $params['requestType'] = $requestType;
+
         // Add optional parameters if not empty
-        $optionalParams = ['applicantBankCode', 'boName', 'boTransactionRefNo', 'purpose', 'requestType', 'segment'];
+        $optionalParams = ['applicantBankCode', 'boName', 'purpose', 'segment'];
         foreach ($optionalParams as $param) {
             $value = $request->input($param);
             if (!empty($value)) {
@@ -133,10 +156,10 @@ class AuthorizeCreationController extends Controller
     /**
      * Build request parameters for API call
      */
-    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature): array
+    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType): array
     {
         $params = [
-            'clientID' => $request->input('clientID'),
+            'clientID' => $clientID,
             'requestID' => $requestId,
             'nonce' => $nonce,
             'timestamp' => $timestamp,
@@ -144,8 +167,12 @@ class AuthorizeCreationController extends Controller
             'signature' => $signature,
         ];
 
+        // Add backend-set required parameters
+        $params['boTransactionRefNo'] = $boTransactionRefNo;
+        $params['requestType'] = $requestType;
+
         // Add optional parameters if provided
-        $optionalParams = ['applicantBankCode', 'boName', 'boTransactionRefNo', 'purpose', 'requestType', 'segment'];
+        $optionalParams = ['applicantBankCode', 'boName', 'purpose', 'segment'];
         foreach ($optionalParams as $param) {
             $value = $request->input($param);
             if (!empty($value)) {
