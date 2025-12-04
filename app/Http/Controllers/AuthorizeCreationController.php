@@ -145,7 +145,16 @@ class AuthorizeCreationController extends Controller
         $params['purpose'] = $purpose;
         $params['segment'] = $segment;
 
-        return http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        // Build URL-encoded query string
+        $urlEncodedString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        
+        // Apply special encoding rules as per API specification
+        // Replace %25 (encoded %) with actual %
+        $urlEncodedString = str_replace('%25', '%', $urlEncodedString);
+        // Replace %20 (encoded space) with actual space
+        $urlEncodedString = str_replace('%20', ' ', $urlEncodedString);
+
+        return $urlEncodedString;
     }
 
     /**
