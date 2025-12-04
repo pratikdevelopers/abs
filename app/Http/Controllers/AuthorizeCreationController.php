@@ -146,7 +146,7 @@ class AuthorizeCreationController extends Controller
         $params['segment'] = $segment;
 
         // Build URL-encoded query string
-        $urlEncodedString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        $urlEncodedString = http_build_query($params, null, null, PHP_QUERY_RFC3986);
         
         // Apply special encoding rules as per API specification
         // Replace %25 (encoded %) with actual %
