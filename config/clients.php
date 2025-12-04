@@ -114,7 +114,7 @@ return [
             ]
         ],
         'production' => [
-            'bo_name' => '',
+            'bo_name' => 'MONEYWISE CREDIT PTE. LTD.',
             'client_id' => '',
             'x-api-key' => '',
             'aggregator_key_alias' => '',
