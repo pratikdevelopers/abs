@@ -192,7 +192,7 @@ class AuthorizeCreationController extends Controller
         $url = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
 
         $headers = [
-            'Content-Type' => 'application/json',
+            // 'Content-Type' => 'application/json',
             'clientID' => $clientConfig['client_id'],
             'requestID' => $requestId,
             'x-api-key' => $clientConfig['x-api-key'],
