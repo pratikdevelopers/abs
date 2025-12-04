@@ -158,19 +158,23 @@ class AuthorizeCreationController extends Controller
     }
 
     /**
-     * Generate SHA256 signature using GPG service
+     * Generate signature using GPG service and encode it
      */
     private function generateSignature(string $signatureParams, string $privateKeyPath, string $passphrase, ?string $issuerFingerprint): string|false
     {
         try {
             $gpgService = new GpgService();
 
-            $signature = $gpgService->signWithSHA256(
+            // Sign the URL-encoded string
+            $signature = $gpgService->sign(
                 $signatureParams,
                 $privateKeyPath,
                 $passphrase,
                 $issuerFingerprint
             );
+
+            // Encode the signature using encodeURIComponent
+            $signature = $this->encodeURIComponent($signature);
 
             return $signature;
 
@@ -216,14 +220,6 @@ class AuthorizeCreationController extends Controller
     {
         $url = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
 
-        // $headers = [
-        //     // 'Content-Type' => 'application/json',
-        //     'clientID' => $clientConfig['client_id'],
-        //     'requestID' => $requestId,
-        //     'x-api-key' => $clientConfig['x-api-key'],
-        //     'aggregatorKeyAlias' => $clientConfig['aggregator_key_alias'],
-        // ];
-
         // Add optional signKeyAlias if available
         if (!empty($clientConfig['sign_key_alias'])) {
             $headers['signKeyAlias'] = $clientConfig['sign_key_alias'];
@@ -240,7 +236,6 @@ class AuthorizeCreationController extends Controller
             return response()->json([
                 'request_data' => [
                     'url' => $url,
-                    // 'headers' => $headers,
                     'request_params' => $requestParams,
                     'timestamp' => now()->format('Y-m-d H:i:s'),
                 ],
@@ -255,5 +250,22 @@ class AuthorizeCreationController extends Controller
             'message' => 'Authorize creation successful',
             'data' => $response->json(),
         ]);
+    }
+
+    /**
+     * Encode URI component with special character handling
+     * Similar to JavaScript's encodeURIComponent but with specific reverts
+     */
+    private function encodeURIComponent(string $query_param): string
+    {
+        $revert = [
+            '%21' => '!',
+            '%2A' => '*',
+            '%27' => "'",
+            '%28' => '( ',
+            '%29' => ' )',
+        ];
+
+        return strtr(rawurlencode($query_param), $revert);
     }
 }
