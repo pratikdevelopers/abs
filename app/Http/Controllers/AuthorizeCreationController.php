@@ -118,6 +118,7 @@ class AuthorizeCreationController extends Controller
         $signature = str_replace('%25', '%', $signature);
 
         // Append signature to the URL-encoded string
+        // The signature is already encoded with encodeURIComponent, append directly
         $requestParamsString = $signatureParams . '&signature=' . $signature;
 
         // Make API request
@@ -178,6 +179,9 @@ class AuthorizeCreationController extends Controller
                 $issuerFingerprint
             );
 
+            // Remove any newlines or control characters that might break URL
+            $signature = str_replace(["\r", "\n", "\t"], '', $signature);
+            
             // Encode the signature using encodeURIComponent
             $signature = $this->encodeURIComponent($signature);
 
@@ -197,9 +201,6 @@ class AuthorizeCreationController extends Controller
     {
         $url = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         
-        // Append query string to URL
-        $fullUrl = $url . '?' . $requestParamsString;
-
         // Build headers
         $headers = [
             'clientID: ' . $clientConfig['client_id'],
@@ -215,6 +216,11 @@ class AuthorizeCreationController extends Controller
 
         // Use cURL to make HEAD request and follow redirects
         $ch = curl_init();
+        
+        // Build the full URL with query string
+        $fullUrl = $url . '?' . $requestParamsString;
+        
+        // Set the URL - cURL will validate it
         curl_setopt($ch, CURLOPT_URL, $fullUrl);
         curl_setopt($ch, CURLOPT_HEADER, true); // Get header
         curl_setopt($ch, CURLOPT_NOBODY, true); // HEAD request (do not include response body)
