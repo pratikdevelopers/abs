@@ -51,18 +51,18 @@ class AuthorizeCreationController extends Controller
         $requestType = $request->input('requestType') ?: 'Creation';
         
         // Generate boTransactionRefNo if not provided
-        // Format: {clientID}{year_last_3_digits} {timestamp}{sequence}
-        // Example: BOSIN1992001COR202 10303101010123456 (35 chars total)
-        // clientID (15) + year (3) + space (1) + timestamp+sequence (16) = 35
+        // Format: {clientID}{year_last_3_digits}{timestamp}{sequence}
+        // Example: BO96B2532M0196B0251054155173191199627 (35 chars total, no space)
+        // clientID (15) + year (3) + timestamp+sequence (17) = 35
         $boTransactionRefNo = $request->input('boTransactionRefNo');
         if (empty($boTransactionRefNo)) {
             $now = now();
-            $yearLast3 = substr($now->format('Y'), -3); // Last 3 digits of year (e.g., 202 from 2024)
+            $yearLast3 = substr($now->format('Y'), -3); // Last 3 digits of year (e.g., 025 from 2025)
             $timestamp = $now->format('His'); // HHMMSS (6 chars)
             $microseconds = str_pad((string) $now->micro, 3, '0', STR_PAD_LEFT); // 3 chars
-            $sequence = str_pad((string) rand(1000000, 9999999), 7, '0', STR_PAD_LEFT); // 7 chars
-            // Total: clientID (15) + year (3) + space (1) + timestamp (6) + microseconds (3) + sequence (7) = 35
-            $boTransactionRefNo = $clientID . $yearLast3 . ' ' . $timestamp . $microseconds . $sequence;
+            $sequence = str_pad((string) rand(1000000, 9999999), 8, '0', STR_PAD_LEFT); // 8 chars
+            // Total: clientID (15) + year (3) + timestamp (6) + microseconds (3) + sequence (8) = 35
+            $boTransactionRefNo = $clientID . $yearLast3 . $timestamp . $microseconds . $sequence;
         }
 
         $pgpConfig = $clientConfig['pgp'] ?? [];
