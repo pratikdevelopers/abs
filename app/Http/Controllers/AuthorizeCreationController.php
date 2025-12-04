@@ -54,18 +54,21 @@ class AuthorizeCreationController extends Controller
         $boDDARefNo = $request->input('boDDARefNo') ?: strtoupper(Str::random(35));
         
         // Generate boTransactionRefNo if not provided
-        // Format: {clientID}{year_last_3_digits}{timestamp}{sequence}
-        // Example: BO96B2532M0196B0251054155173191199627 (35 chars total, no space)
-        // clientID (15) + year (3) + timestamp+sequence (17) = 35
+        // Format: {clientID}{datetime}{random_digits}
+        // Client ID (15) + Datetime YYYYMMDDhhmmss (14) + Random digits (6) = 35 characters total
         $boTransactionRefNo = $request->input('boTransactionRefNo');
         if (empty($boTransactionRefNo)) {
-            $now = now();
-            $yearLast3 = substr($now->format('Y'), -3); // Last 3 digits of year (e.g., 025 from 2025)
-            $timestamp = $now->format('His'); // HHMMSS (6 chars)
-            $microseconds = str_pad((string) $now->micro, 3, '0', STR_PAD_LEFT); // 3 chars
-            $sequence = str_pad((string) rand(1000000, 9999999), 8, '0', STR_PAD_LEFT); // 8 chars
-            // Total: clientID (15) + year (3) + timestamp (6) + microseconds (3) + sequence (8) = 35
-            $boTransactionRefNo = $clientID . $yearLast3 . $timestamp . $microseconds . $sequence;
+            // Get Client ID and pad to 15 characters (left-padded with zeros)
+            $client_id_padded = str_pad(substr($clientID, 0, 15), 15, '0', STR_PAD_LEFT);
+            
+            // Generate datetime in YYYYMMDDhhmmss format (14 characters)
+            $datetime = date('YmdHis');
+            
+            // Generate 6 random digits (left-padded with zeros)
+            $random_digits = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+            
+            // Combine: Client ID (15) + Datetime (14) + Random digits (6) = 35 characters total
+            $boTransactionRefNo = $client_id_padded . $datetime . $random_digits;
         }
 
         $pgpConfig = $clientConfig['pgp'] ?? [];
