@@ -201,26 +201,26 @@ class AuthorizeCreationController extends Controller
 
         // Append query string to URL
         $fullUrl = $url . '?' . $requestParamsString;
-        // $response = $http->get($fullUrl);
+        $response = $http->get($fullUrl);
 
-        // if ($response->failed()) {
-        //     return response()->json([
-        //         'request_data' => [
-        //             'url' => $fullUrl,
-        //             'request_params_string' => $requestParamsString,
-        //             'timestamp' => now()->format('Y-m-d H:i:s'),
-        //         ],
-        //         'response_data' => [
-        //             'status' => $response->status(),
-        //             'body' => $response->body(),
-        //         ],
-        //     ], $response->status() ?: 502);
-        // }
+        if ($response->failed()) {
+            return response()->json([
+                'request_data' => [
+                    'url' => $fullUrl,
+                    'request_params_string' => $requestParamsString,
+                    'timestamp' => now()->format('Y-m-d H:i:s'),
+                ],
+                'response_data' => [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ],
+            ], $response->status() ?: 502);
+        }
 
-        // return response()->json([
-        //     'message' => 'Authorize creation successful',
-        //     'data' => $response->json(),
-        // ]);
+        return response()->json([
+            'message' => 'Authorize creation successful',
+            'data' => $response->json(),
+        ]);
     }
 
     /**
