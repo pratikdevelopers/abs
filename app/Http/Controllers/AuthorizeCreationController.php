@@ -114,7 +114,7 @@ class AuthorizeCreationController extends Controller
 
         // Replace %25 with % in signature (as per API specification)
         $signature = str_replace('%25', '%', $signature);
-        
+
         // Append signature to the URL-encoded string
         $requestParamsString = $signatureParams . '&signature=' . $signature;
 
@@ -150,7 +150,7 @@ class AuthorizeCreationController extends Controller
 
         // Build URL-encoded query string
         $urlEncodedString = http_build_query($params, null, null, PHP_QUERY_RFC3986);
-        
+
         // Apply special encoding rules as per API specification
         // Replace %25 (encoded %) with actual %
         $urlEncodedString = str_replace('%25', '%', $urlEncodedString);
