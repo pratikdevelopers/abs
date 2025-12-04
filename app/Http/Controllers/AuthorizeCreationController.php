@@ -46,6 +46,7 @@ class AuthorizeCreationController extends Controller
 
         // Set backend-generated values
         $boName = $request->input('boName') ?: $clientConfig['bo_name'];
+        $applicantBankCode = $request->input('applicantBankCode') ?: 'UOVBSGSGXXX';
         $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
         $requestType = $request->input('requestType') ?: 'Creation';
         
@@ -88,7 +89,7 @@ class AuthorizeCreationController extends Controller
         $signKeyAlias = $request->input('signKeyAlias') ?: ($clientConfig['sign_key_alias'] ?? '');
 
         // Build signature parameters in correct order, excluding empty optional fields
-        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType);
+        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode);
 
         // Generate signature
         $signature = $this->generateSignature($signatureParams, $privateKeyPath, $passphrase, $issuerFingerprint);
@@ -97,7 +98,7 @@ class AuthorizeCreationController extends Controller
         }
 
         // Prepare request parameters for API call
-        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType);
+        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode);
 
         // Make API request
         return $this->makeApiRequest($requestParams, $clientConfig, $requestId);
@@ -106,7 +107,7 @@ class AuthorizeCreationController extends Controller
     /**
      * Build signature parameters in correct order, excluding empty optional fields
      */
-    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType): string
+    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode): string
     {
         $params = [
             'clientID' => $clientID,
@@ -114,6 +115,8 @@ class AuthorizeCreationController extends Controller
             'nonce' => $nonce,
             'timestamp' => $timestamp,
             'signKeyAlias' => $signKeyAlias,
+            'boName' => $boName,
+            'applicantBankCode' => $applicantBankCode,
         ];
 
         // Add backend-set required parameters
