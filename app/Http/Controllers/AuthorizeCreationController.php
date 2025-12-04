@@ -112,11 +112,14 @@ class AuthorizeCreationController extends Controller
             return response()->json(['message' => 'Signature generation failed'], 500);
         }
 
-        // Prepare request parameters for API call
-        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo, $purpose, $segment);
+        // Replace %25 with % in signature (as per API specification)
+        $signature = str_replace('%25', '%', $signature);
+        
+        // Append signature to the URL-encoded string
+        $requestParamsString = $signatureParams . '&signature=' . $signature;
 
         // Make API request
-        return $this->makeApiRequest($requestParams, $clientConfig, $requestId);
+        return $this->makeApiRequest($requestParamsString, $clientConfig, $requestId);
     }
 
     /**
@@ -183,42 +186,21 @@ class AuthorizeCreationController extends Controller
         }
     }
 
-    /**
-     * Build request parameters for API call
-     */
-    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo, string $purpose, string $segment): array
-    {
-        $params = [
-            'clientID' => $clientID,
-            'requestID' => $requestId,
-            'nonce' => $nonce,
-            'timestamp' => $timestamp,
-            'signature' => $signature,
-            'boName' => $boName,
-            'applicantBankCode' => $applicantBankCode,
-            'boDDARefNo' => $boDDARefNo,
-        ];
-
-        // Only include signKeyAlias if it's not empty
-        if (!empty($signKeyAlias)) {
-            $params['signKeyAlias'] = $signKeyAlias;
-        }
-
-        // Add backend-set required parameters
-        $params['boTransactionRefNo'] = $boTransactionRefNo;
-        $params['requestType'] = $requestType;
-        $params['purpose'] = $purpose;
-        $params['segment'] = $segment;
-
-        return $params;
-    }
 
     /**
      * Make HTTP request to authorize creation API
      */
-    private function makeApiRequest(array $requestParams, array $clientConfig, string $requestId): JsonResponse
+    private function makeApiRequest(string $requestParamsString, array $clientConfig, string $requestId): JsonResponse
     {
         $url = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
+
+        $headers = [
+            // 'Content-Type' => 'application/json',
+            'clientID' => $clientConfig['client_id'],
+            'requestID' => $requestId,
+            'x-api-key' => $clientConfig['x-api-key'],
+            'aggregatorKeyAlias' => $clientConfig['aggregator_key_alias'],
+        ];
 
         // Add optional signKeyAlias if available
         if (!empty($clientConfig['sign_key_alias'])) {
@@ -228,15 +210,18 @@ class AuthorizeCreationController extends Controller
         $http = Http::withOptions([
             'cert' => storage_path('app/certs/uobuat_sivren_org.crt'),
             'ssl_key' => storage_path('app/certs/uobuat_sivren_org.pem'),
-        ]);
+        ])->withHeaders($headers);
 
-        $response = $http->get($url, $requestParams);
+        // Append query string to URL
+        $fullUrl = $url . '?' . $requestParamsString;
+        $response = $http->get($fullUrl);
 
         if ($response->failed()) {
             return response()->json([
                 'request_data' => [
-                    'url' => $url,
-                    'request_params' => $requestParams,
+                    'url' => $fullUrl,
+                    'headers' => $headers,
+                    'request_params_string' => $requestParamsString,
                     'timestamp' => now()->format('Y-m-d H:i:s'),
                 ],
                 'response_data' => [
