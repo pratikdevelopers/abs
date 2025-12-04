@@ -18,6 +18,7 @@ class AuthorizeCreationController extends Controller
             'applicantBankCode' => 'nullable|string|min:1|max:35',
             'boName' => 'nullable|string|max:140',
             'boTransactionRefNo' => 'nullable|string|min:35|max:35',
+            'boDDARefNo' => 'nullable|string|max:35',
             'clientID' => 'nullable|string|min:15|max:15',
             'purpose' => 'nullable|string|in:LOAN',
             'requestID' => 'nullable|string|min:36|max:36',
@@ -132,7 +133,7 @@ class AuthorizeCreationController extends Controller
         $params['requestType'] = $requestType;
 
         // Add optional parameters if not empty
-        $optionalParams = ['applicantBankCode', 'boName', 'purpose', 'segment'];
+        $optionalParams = ['applicantBankCode', 'boName', 'boDDARefNo', 'purpose', 'segment'];
         foreach ($optionalParams as $param) {
             $value = $request->input($param);
             if (!empty($value)) {
@@ -186,7 +187,7 @@ class AuthorizeCreationController extends Controller
         $params['requestType'] = $requestType;
 
         // Add optional parameters if provided
-        $optionalParams = ['purpose', 'segment'];
+        $optionalParams = ['boDDARefNo', 'purpose', 'segment'];
         foreach ($optionalParams as $param) {
             $value = $request->input($param);
             if (!empty($value)) {
