@@ -119,7 +119,7 @@ class AuthorizeCreationController extends Controller
         $requestParamsString = $signatureParams . '&signature=' . $signature;
 
         // Make API request
-        return $this->makeApiRequest($requestParamsString, $clientConfig, $requestId);
+        // return $this->makeApiRequest($requestParamsString, $clientConfig, $requestId);
     }
 
     /**
