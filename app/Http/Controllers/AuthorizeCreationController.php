@@ -160,7 +160,7 @@ class AuthorizeCreationController extends Controller
     /**
      * Build request parameters for API call
      */
-    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType): array
+    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode): array
     {
         $params = [
             'clientID' => $clientID,
@@ -169,6 +169,8 @@ class AuthorizeCreationController extends Controller
             'timestamp' => $timestamp,
             'signKeyAlias' => $signKeyAlias,
             'signature' => $signature,
+            'boName' => $boName,
+            'applicantBankCode' => $applicantBankCode,
         ];
 
         // Add backend-set required parameters
@@ -176,7 +178,7 @@ class AuthorizeCreationController extends Controller
         $params['requestType'] = $requestType;
 
         // Add optional parameters if provided
-        $optionalParams = ['applicantBankCode', 'boName', 'purpose', 'segment'];
+        $optionalParams = ['purpose', 'segment'];
         foreach ($optionalParams as $param) {
             $value = $request->input($param);
             if (!empty($value)) {
