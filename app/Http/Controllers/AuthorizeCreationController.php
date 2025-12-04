@@ -50,7 +50,7 @@ class AuthorizeCreationController extends Controller
         $applicantBankCode = $request->input('applicantBankCode') ?: 'UOVBSGSGXXX';
         $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
         $requestType = $request->input('requestType') ?: 'Creation';
-        $requestType = $request->input('boDDARefNo') ?: Str::random(35);
+        $boDDARefNo = $request->input('boDDARefNo') ?: Str::random(35);
         
         // Generate boTransactionRefNo if not provided
         // Format: {clientID}{year_last_3_digits}{timestamp}{sequence}
@@ -99,7 +99,7 @@ class AuthorizeCreationController extends Controller
         $signKeyAlias = $request->input('signKeyAlias') ?: ($clientConfig['sign_key_alias'] ?? '');
 
         // Build signature parameters in correct order, excluding empty optional fields
-        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode);
+        $signatureParams = $this->buildSignatureParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo);
 
         // Generate signature
         $signature = $this->generateSignature($signatureParams, $privateKeyPath, $passphrase, $issuerFingerprint);
@@ -108,7 +108,7 @@ class AuthorizeCreationController extends Controller
         }
 
         // Prepare request parameters for API call
-        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode);
+        $requestParams = $this->buildRequestParams($request, $requestId, $nonce, $timestamp, $signKeyAlias, $signature, $clientID, $boTransactionRefNo, $requestType, $boName, $applicantBankCode, $boDDARefNo);
 
         // Make API request
         return $this->makeApiRequest($requestParams, $clientConfig, $requestId);
@@ -117,7 +117,7 @@ class AuthorizeCreationController extends Controller
     /**
      * Build signature parameters in correct order, excluding empty optional fields
      */
-    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode): string
+    private function buildSignatureParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo): string
     {
         $params = [
             'clientID' => $clientID,
@@ -127,6 +127,7 @@ class AuthorizeCreationController extends Controller
             'signKeyAlias' => $signKeyAlias,
             'boName' => $boName,
             'applicantBankCode' => $applicantBankCode,
+            'boDDARefNo' => $boDDARefNo,
         ];
 
         // Add backend-set required parameters
@@ -170,7 +171,7 @@ class AuthorizeCreationController extends Controller
     /**
      * Build request parameters for API call
      */
-    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode): array
+    private function buildRequestParams(Request $request, string $requestId, string $nonce, string $timestamp, string $signKeyAlias, string $signature, string $clientID, string $boTransactionRefNo, string $requestType, string $boName, string $applicantBankCode, string $boDDARefNo): array
     {
         $params = [
             'clientID' => $clientID,
@@ -181,6 +182,7 @@ class AuthorizeCreationController extends Controller
             'signature' => $signature,
             'boName' => $boName,
             'applicantBankCode' => $applicantBankCode,
+            'boDDARefNo' => $boDDARefNo,
         ];
 
         // Add backend-set required parameters
