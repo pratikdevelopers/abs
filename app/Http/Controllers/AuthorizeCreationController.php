@@ -221,8 +221,8 @@ class AuthorizeCreationController extends Controller
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         
         // Set SSL certificate and key for mutual TLS
-        curl_setopt($ch, CURLOPT_SSLCERT, storage_path('app/certs/uobuat_sivren_org.crt'));
-        curl_setopt($ch, CURLOPT_SSLKEY, storage_path('app/certs/uobuat_sivren_org.pem'));
+        // curl_setopt($ch, CURLOPT_SSLCERT, storage_path('app/certs/uobuat_sivren_org.crt'));
+        // curl_setopt($ch, CURLOPT_SSLKEY, storage_path('app/certs/uobuat_sivren_org.pem'));
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
