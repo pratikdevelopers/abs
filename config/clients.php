@@ -3,6 +3,7 @@
 return [
     'soonsengcredit' => [
         'uat' => [
+            'bo_name' => 'SOONSENG CREDIT PTE. LTD.',
             'client_id' => 'BOSOO1887G01SOO',
             'x-api-key' => '1135a09c-b0db-4c95-93e7-b8eb8f3e63e2',
             'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
@@ -17,6 +18,7 @@ return [
             ]
         ],
         'production' => [
+            'bo_name' => '',
             'client_id' => '',
             'x-api-key' => '',
             'aggregator_key_alias' => '',
@@ -33,6 +35,7 @@ return [
     ],
     'galaxycredit' => [
         'uat' => [
+            'bo_name' => 'GALAXY CREDIT PTE. LTD.',
             'client_id' => 'BOGAL0194M01GAL',
             'x-api-key' => '9523ef31-107d-4242-9139-6360337bd8d2',
             'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
@@ -47,6 +50,7 @@ return [
             ]
         ],
         'production' => [
+            'bo_name' => '',
             'client_id' => '',
             'x-api-key' => '',
             'aggregator_key_alias' => '',
@@ -63,6 +67,7 @@ return [
     ],
     '96bmcredit' => [
         'uat' => [
+            'bo_name' => '96BM CREDIT PTE LTD',
             'client_id' => 'BO96B2532M0196B',
             'x-api-key' => 'c11287ac-1ca3-445b-a9ae-1bae619fc987',
             'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
@@ -77,6 +82,7 @@ return [
             ]
         ],
         'production' => [
+            'bo_name' => '',
             'client_id' => '',
             'x-api-key' => '',
             'aggregator_key_alias' => '',
@@ -93,6 +99,7 @@ return [
     ],
     'moneywise-credit' => [
         'uat' => [
+            'bo_name' => 'MONEYWISE CREDIT PTE. LTD.',
             'client_id' => 'BOMON8326M01MON',
             'x-api-key' => 'b972e3f5-afe5-4669-981c-17040a5f19a9',
             'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
@@ -107,6 +114,7 @@ return [
             ]
         ],
         'production' => [
+            'bo_name' => '',
             'client_id' => '',
             'x-api-key' => '',
             'aggregator_key_alias' => '',

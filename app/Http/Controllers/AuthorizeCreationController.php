@@ -45,6 +45,7 @@ class AuthorizeCreationController extends Controller
         $clientConfig = $clientConfig[env('APP_ENV')];
 
         // Set backend-generated values
+        $boName = $request->input('boName') ?: $clientConfig['bo_name'];
         $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
         $requestType = $request->input('requestType') ?: 'Creation';
         
