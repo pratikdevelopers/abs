@@ -129,11 +129,15 @@ class AuthorizeCreationController extends Controller
             'requestID' => $requestId,
             'nonce' => $nonce,
             'timestamp' => $timestamp,
-            'signKeyAlias' => $signKeyAlias,
             'boName' => $boName,
             'applicantBankCode' => $applicantBankCode,
             'boDDARefNo' => $boDDARefNo,
         ];
+
+        // Only include signKeyAlias if it's not empty
+        if (!empty($signKeyAlias)) {
+            $params['signKeyAlias'] = $signKeyAlias;
+        }
 
         // Add backend-set required parameters
         $params['boTransactionRefNo'] = $boTransactionRefNo;
@@ -176,12 +180,16 @@ class AuthorizeCreationController extends Controller
             'requestID' => $requestId,
             'nonce' => $nonce,
             'timestamp' => $timestamp,
-            'signKeyAlias' => $signKeyAlias,
             'signature' => $signature,
             'boName' => $boName,
             'applicantBankCode' => $applicantBankCode,
             'boDDARefNo' => $boDDARefNo,
         ];
+
+        // Only include signKeyAlias if it's not empty
+        if (!empty($signKeyAlias)) {
+            $params['signKeyAlias'] = $signKeyAlias;
+        }
 
         // Add backend-set required parameters
         $params['boTransactionRefNo'] = $boTransactionRefNo;
@@ -204,9 +212,13 @@ class AuthorizeCreationController extends Controller
         //     'clientID' => $clientConfig['client_id'],
         //     'requestID' => $requestId,
         //     'x-api-key' => $clientConfig['x-api-key'],
-        //     'signKeyAlias' => $clientConfig['sign_key_alias'] ?? '',
         //     'aggregatorKeyAlias' => $clientConfig['aggregator_key_alias'],
         // ];
+
+        // Add optional signKeyAlias if available
+        if (!empty($clientConfig['sign_key_alias'])) {
+            $headers['signKeyAlias'] = $clientConfig['sign_key_alias'];
+        }
 
         $http = Http::withOptions([
             'cert' => storage_path('app/certs/uobuat_sivren_org.crt'),
