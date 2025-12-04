@@ -84,7 +84,15 @@ class AuthorizeCreationController extends Controller
 
         // Generate values if not provided in request
         $requestId = $request->input('requestID') ?: Str::uuid()->toString();
-        $nonce = $request->input('nonce') ?: Str::random(20);
+        // Generate unique 20-digit random number for nonce (created for every request)
+        $nonce = $request->input('nonce');
+        if (empty($nonce)) {
+            // Generate 20 random digits
+            $nonce = '';
+            for ($i = 0; $i < 20; $i++) {
+                $nonce .= rand(0, 9);
+            }
+        }
         $timestamp = $request->input('Timestamp') ?: (string) (time() * 1000);
         $signKeyAlias = $request->input('signKeyAlias') ?: ($clientConfig['sign_key_alias'] ?? '');
 
