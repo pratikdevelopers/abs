@@ -203,7 +203,7 @@ class AuthorizeCreationController extends Controller
         $http = Http::withOptions([
             'cert' => storage_path('app/certs/uobuat_sivren_org.crt'),
             'ssl_key' => storage_path('app/certs/uobuat_sivren_org.pem'),
-        ])->withHeaders($headers);
+        ]);
 
         $response = $http->get($url, $requestParams);
 
