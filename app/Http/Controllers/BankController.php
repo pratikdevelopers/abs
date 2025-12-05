@@ -74,6 +74,13 @@ class BankController extends Controller
 
         return response()->json([
             'message' => 'Bank list',
+            'request' => [
+                'url' => config('abs.' . env('APP_ENV') . '.banks.api_url'),
+                'full_url' => config('abs.' . env('APP_ENV') . '.banks.api_url') . '?' . $requestParams,
+                'method' => 'GET',
+                'parameters' => $input_array_obj,
+                'query_string' => $requestParams,
+            ],
             'data' => $response->json(),
         ]);
     }
