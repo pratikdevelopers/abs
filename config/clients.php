@@ -4,7 +4,7 @@ return [
     'soonsengcredit' => [
         'uat' => [
             'applicant_bank_code' => 'UOVBSGSGXXX',
-            'bo_name' => 'SOONSENG CREDIT PTE. LTD.',
+            'bo_name' => 'SOON SENG CREDIT PTE LTD',
             'client_id' => 'BOSOO1887G01SOO',
             'x-api-key' => '1135a09c-b0db-4c95-93e7-b8eb8f3e63e2',
             'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
