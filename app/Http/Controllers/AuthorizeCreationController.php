@@ -24,18 +24,18 @@ class AuthorizeCreationController extends Controller
             'Retail',
             $request->all()
         );
-        $input_url_encoded_string = http_build_query($input_array, '', '&', PHP_QUERY_RFC3986);
-        // $input_url_encoded_string = str_replace('%25', '%', $input_url_encoded_string);
-        // $input_url_encoded_string = str_replace('%20', ' ', $input_url_encoded_string);
+        $input_url_encoded_string = http_build_query($input_array, null, null, PHP_QUERY_RFC3986);
+        $input_url_encoded_string = str_replace('%25', '%', $input_url_encoded_string);
+        $input_url_encoded_string = str_replace('%20', ' ', $input_url_encoded_string);
         // $signature = $egiroService->encodeURIComponent(
         //     $egiroService->encodeURIComponent(
         //         $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
         //     )
         // );
-        $signature = $egiroService->encodeURIComponent(
-            $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
-        );
-        // $signature = $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'));
+        // $signature = $egiroService->encodeURIComponent(
+        //     $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
+        // );
+        $signature = $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'));
 
         $signature = str_replace('%25', '%', $signature);
         $input_url_encoded_string .= '&signature=' . $signature;
