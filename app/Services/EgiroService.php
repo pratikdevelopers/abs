@@ -22,7 +22,7 @@ class EgiroService
             'requestType' => $requestType,
             'segment' => $segment,
             'nonce' => $this->createNonce(),
-            'timestamp' => $this->createTimestamp(),
+            'timestamp' => now()->toIso8601String(),
         ];
 
         return $input_array_obj;
