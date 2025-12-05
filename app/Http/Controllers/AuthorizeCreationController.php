@@ -20,7 +20,7 @@ class AuthorizeCreationController extends Controller
         $input_array = $egiroService->createAuthorize(
             $request->client_slug,
             'Creation',
-            'Corporate',
+            'Retail',
             $request->all()
         );
         $input_url_encoded_string = http_build_query($input_array, null, null, PHP_QUERY_RFC3986);
