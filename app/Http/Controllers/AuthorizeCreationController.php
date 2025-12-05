@@ -45,17 +45,20 @@ class AuthorizeCreationController extends Controller
         $signature = str_replace('%25', '%', $signature);
         
         // Build final URL with properly encoded parameters
-        // First, encode all parameters except signature
+        // Use http_build_query which will properly encode all parameters
+        // This ensures timestamp and all other parameters are correctly encoded
         $encodedParams = http_build_query($input_array, '', '&', PHP_QUERY_RFC3986);
         
-        // Add signature (already encoded, so append directly)
+        // Apply special encoding rules to the encoded params (before adding signature)
+        // Replace %20 (encoded space) with actual space in parameter values
+        $encodedParams = str_replace('%20', ' ', $encodedParams);
+        
+        // Add signature parameter - signature is already URL encoded with special rules applied
         $finalQueryString = $encodedParams . '&signature=' . $signature;
         
-        // Apply special encoding rules as per API specification
-        // Replace %25 (encoded %) with actual %
-        $finalQueryString = str_replace('%25', '%', $finalQueryString);
-        // Replace %20 (encoded space) with actual space  
-        $finalQueryString = str_replace('%20', ' ', $finalQueryString);
+        // Note: We don't apply %25 replacement to the entire query string as it can corrupt
+        // other encoded sequences. The %25 replacement is only needed in the signature,
+        // which is already handled when encoding the signature.
         
         $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         $fullUrl = $apiUrl . '?' . $finalQueryString;
