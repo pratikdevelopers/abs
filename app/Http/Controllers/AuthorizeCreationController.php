@@ -267,8 +267,8 @@ class AuthorizeCreationController extends Controller
                 },
             ])->withHeaders($headers);
 
-            // Use head() method to make HEAD request (follows redirects by default)
-            $response = $http->head($fullUrl);
+            // Use get() method to make GET request (follows redirects by default)
+            $response = $http->get($fullUrl);
             
             $httpCode = $response->status();
             
