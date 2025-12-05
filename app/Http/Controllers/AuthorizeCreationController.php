@@ -32,12 +32,12 @@ class AuthorizeCreationController extends Controller
         //         $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
         //     )
         // );
-        // $signature = $egiroService->encodeURIComponent(
-        //     $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
-        // );
-        $signature = $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'));
+        $signature = $egiroService->encodeURIComponent(
+            $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
+        );
+        // $signature = $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'));
 
-        // $signature = str_replace('%25', '%', $signature);
+        $signature = str_replace('%25', '%', $signature);
         $input_url_encoded_string .= '&signature=' . $signature;
         $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         $fullUrl = $apiUrl . '?' . $input_url_encoded_string;
