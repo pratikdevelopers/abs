@@ -24,7 +24,7 @@ class AuthorizeCreationController extends Controller
             'Retail',
             $request->all()
         );
-        $input_url_encoded_string = http_build_query($input_array);
+        $input_url_encoded_string = http_build_query($input_array, '', '&', PHP_QUERY_RFC3986);
         // $input_url_encoded_string = str_replace('%25', '%', $input_url_encoded_string);
         // $input_url_encoded_string = str_replace('%20', ' ', $input_url_encoded_string);
         // $signature = $egiroService->encodeURIComponent(
