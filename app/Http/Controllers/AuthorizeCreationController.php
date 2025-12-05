@@ -58,7 +58,7 @@ class AuthorizeCreationController extends Controller
             'client_slug' => 'required|string',
             'applicantBankCode' => 'required|string|size:11',
             'boName' => 'nullable|string|max:140',
-            'boTransactionRefNo' => 'required|string|size:35',
+            'boTransactionRefNo' => 'nullable|string|size:35',
             'boDDARefNo' => 'nullable|string|max:35',
             'clientID' => 'nullable|string|size:15',
             'purpose' => 'nullable|string|size:4',
@@ -86,9 +86,12 @@ class AuthorizeCreationController extends Controller
         // Get parameters from request (with auto-generation for optional fields)
         $applicantBankCode = $request->input('applicantBankCode');
         $boName = $request->input('boName') ?: ($clientConfig['bo_name'] ?? '');
-        $boTransactionRefNo = $request->input('boTransactionRefNo');
-        $boDDARefNo = $request->input('boDDARefNo');
         $clientID = $request->input('clientID') ?: $clientConfig['client_id'];
+        
+        // Generate boTransactionRefNo if not provided
+        $boTransactionRefNo = $request->input('boTransactionRefNo') ?: $this->createTransactionReference($clientSlug, $clientID);
+        
+        $boDDARefNo = $request->input('boDDARefNo');
         $purpose = $request->input('purpose');
         $requestID = $request->input('requestID') ?: Str::uuid()->toString();
         $requestType = $request->input('requestType') ?: 'Creation';
@@ -320,6 +323,35 @@ class AuthorizeCreationController extends Controller
         $encodedSignature = str_replace('%20', ' ', $encodedSignature);
 
         return $encodedSignature;
+    }
+
+    /**
+     * Create transaction reference number
+     * Format: client_id (15 chars) + DateTime (14 chars YmdHis) + 6 digit random number = 35 chars
+     * 
+     * @param string $clientSlug Client slug identifier
+     * @param string $clientID Client ID (15 characters)
+     * @return string 35-character transaction reference number
+     */
+    private function createTransactionReference(string $clientSlug, string $clientID): string
+    {
+        // Ensure clientID is exactly 15 characters
+        $eddaClientId = substr($clientID, 0, 15);
+        if (strlen($eddaClientId) < 15) {
+            $eddaClientId = str_pad($eddaClientId, 15, '0', STR_PAD_RIGHT);
+        }
+
+        // Get current date/time in YmdHis format (14 characters)
+        $date = new \DateTime();
+        $dateOutputTransref = $date->format('YmdHis');
+
+        // Generate 6-digit random number
+        $sixDigitRandomNumber = random_int(100000, 999999);
+
+        // Combine: client_id (15) + DateTime (14) + random (6) = 35 characters
+        $result = $eddaClientId . $dateOutputTransref . $sixDigitRandomNumber;
+
+        return $result;
     }
 
     /**
