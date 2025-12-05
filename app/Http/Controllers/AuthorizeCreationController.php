@@ -30,8 +30,8 @@ class AuthorizeCreationController extends Controller
         );
         $signature = str_replace('%25', '%', $signature);
         $input_url_encoded_string .= '&signature=' . $signature;
-        // $response = Http::get(config('abs.' . env('APP_ENV') . '.authorize_creation.api_url'), $input_url_encoded_string);
-        // return response()->json($response->json());
+        $response = Http::get(config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url'), $input_url_encoded_string);
+        return response()->json($response->json());
         return response()->json([
             'message' => 'Authorize creation successful',
             'data' => config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url') . '?' . $input_url_encoded_string,
