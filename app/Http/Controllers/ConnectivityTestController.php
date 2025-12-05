@@ -101,7 +101,7 @@ class ConnectivityTestController extends Controller
             'ssl_key' => storage_path('app/certs/uobuat_sivren_org.pem'),
         ])->withHeaders($headers);
 
-        $response = $http->post($url, $ciphertext);
+        $response = $http->withBody($ciphertext, 'text/plain')->post($url);
         if ($response->failed()) {
             return response()->json([
                 'request_data' => [
