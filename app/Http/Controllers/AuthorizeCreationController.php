@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Services\GpgService;
 use Crypt_GPG;
+use Redirect;
 
 class AuthorizeCreationController extends Controller
 {
@@ -35,6 +36,10 @@ class AuthorizeCreationController extends Controller
         $input_url_encoded_string .= '&signature=' . $signature;
         $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         $fullUrl = $apiUrl . '?' . $input_url_encoded_string;
+
+        $response_url = $this->cURL_eDDA_Create($fullUrl);
+
+        Redirect::to($response_url);
 
         $response = Http::get($apiUrl . '?' . $input_url_encoded_string);
 
@@ -81,6 +86,20 @@ class AuthorizeCreationController extends Controller
         }
 
         return response()->json($responseData, $response->status() ?: 200);
+    }
+
+    public function cURL_eDDA_Create($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url); // set url
+        curl_setopt($ch, CURLOPT_HEADER, true); // get header
+        curl_setopt($ch, CURLOPT_NOBODY, true); // do not include response body
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // do not show in browser the response
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // follow any redirects
+        curl_exec($ch);
+        $new_url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL); // extract the url from the header response
+
+        return $new_url;
     }
 
     public function sign($query_param, $client_slug)
