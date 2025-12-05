@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Services\GpgService;
+use Crypt_GPG;
 
 class AuthorizeCreationController extends Controller
 {
@@ -26,15 +27,15 @@ class AuthorizeCreationController extends Controller
         $input_url_encoded_string = str_replace('%25', '%', $input_url_encoded_string);
         $input_url_encoded_string = str_replace('%20', ' ', $input_url_encoded_string);
         $signature = $egiroService->encodeURIComponent(
-            $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.fingerprint'))
+            $this->sign($input_url_encoded_string, $request->client_slug)
         );
         $signature = str_replace('%25', '%', $signature);
         $input_url_encoded_string .= '&signature=' . $signature;
         $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         $fullUrl = $apiUrl . '?' . $input_url_encoded_string;
-        
+
         $response = Http::get($apiUrl . '?' . $input_url_encoded_string);
-        
+
         // Build comprehensive response
         $responseData = [
             'success' => $response->successful(),
@@ -54,7 +55,7 @@ class AuthorizeCreationController extends Controller
                 'status' => $response->status(),
             ],
         ];
-        
+
         // Add redirect information if it's a 302 redirect
         if ($response->status() === 302) {
             $location = $response->header('Location');
@@ -65,7 +66,7 @@ class AuthorizeCreationController extends Controller
             ];
             $responseData['message'] = 'Authorization redirect received';
         }
-        
+
         // Add error information if request failed
         if ($response->failed()) {
             $responseData['errors'] = [
@@ -76,7 +77,19 @@ class AuthorizeCreationController extends Controller
                 ],
             ];
         }
-        
+
         return response()->json($responseData, $response->status() ?: 200);
+    }
+
+    public function sign($query_param, $client_slug)
+    {
+        $egiroService = new EgiroService();
+        $gpg = new Crypt_GPG();
+        $gpg->addSignKey(config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.fingerprint'), config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'));
+        $signature = $egiroService->encodeURIComponent(
+            $gpg->sign($query_param, config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
+        );
+
+        return $signature;
     }
 }
