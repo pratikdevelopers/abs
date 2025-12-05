@@ -10,10 +10,10 @@ class EgiroService
     public function createAuthorize($client_slug, $requestType, $segment, $input_array = [])
     {
         $input_array_obj = [
-            'boDDARefNo' => $this->createboDDARefNo(),
-            'applicantBankCode' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.applicant_bank_code'),
-            // 'boDDARefNo' => $input_array['boDDARefNo'],
             'boName' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.bo_name'),
+            'applicantBankCode' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.applicant_bank_code'),
+            'boDDARefNo' => $this->createboDDARefNo(),
+            // 'boDDARefNo' => $input_array['boDDARefNo'],
             'boTransactionRefNo' => $this->createTransactionReference($client_slug),
             // 'boTransactionRefNo' => $input_array['boTransactionRefNo'],
             'clientID' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.client_id'),
