@@ -24,21 +24,41 @@ class AuthorizeCreationController extends Controller
             'Retail',
             $request->all()
         );
-        $input_url_encoded_string = http_build_query($input_array, null, null, PHP_QUERY_RFC3986);
-        $input_url_encoded_string = str_replace('%25', '%', $input_url_encoded_string);
-        $input_url_encoded_string = str_replace('%20', ' ', $input_url_encoded_string);
+        // Build query string - do NOT encode for signature generation (as per PDF spec)
+        // Build manually to maintain exact parameter order and avoid encoding issues
+        $queryParts = [];
+        foreach ($input_array as $key => $value) {
+            $queryParts[] = $key . '=' . $value;
+        }
+        $input_url_encoded_string = implode('&', $queryParts);
+        
+        // Note: No URL encoding is required for Query Parameters to create the Signature (per PDF spec)
         // $signature = $egiroService->encodeURIComponent(
         //     $egiroService->encodeURIComponent(
         //         $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
         //     )
         // );
+        // Generate signature on unencoded query string
         $signature = $egiroService->encodeURIComponent(
             $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
         );
         $signature = str_replace('%25', '%', $signature);
-        $input_url_encoded_string .= '&signature=' . $signature;
+        
+        // Build final URL with properly encoded parameters
+        // First, encode all parameters except signature
+        $encodedParams = http_build_query($input_array, '', '&', PHP_QUERY_RFC3986);
+        
+        // Add signature (already encoded, so append directly)
+        $finalQueryString = $encodedParams . '&signature=' . $signature;
+        
+        // Apply special encoding rules as per API specification
+        // Replace %25 (encoded %) with actual %
+        $finalQueryString = str_replace('%25', '%', $finalQueryString);
+        // Replace %20 (encoded space) with actual space  
+        $finalQueryString = str_replace('%20', ' ', $finalQueryString);
+        
         $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
-        $fullUrl = $apiUrl . '?' . $input_url_encoded_string;
+        $fullUrl = $apiUrl . '?' . $finalQueryString;
 
         $response_url = $this->cURL_eDDA_Create($fullUrl);
 
