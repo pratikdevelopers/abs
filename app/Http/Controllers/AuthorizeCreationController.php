@@ -49,16 +49,16 @@ class AuthorizeCreationController extends Controller
 
         // $response_url = $this->cURL_eDDA_Create($fullUrl);
 
-        return response()->json([
-            'message' => 'Authorize creation',
-            'request' => [
-                'url' => $apiUrl,
-                'full_url' => $fullUrl,
-                'method' => 'GET',
-                'parameters' => $input_array,
-                'query_string' => $input_url_encoded_string,
-            ],
-        ]);
+        // return response()->json([
+        //     'message' => 'Authorize creation',
+        //     'request' => [
+        //         'url' => $apiUrl,
+        //         'full_url' => $fullUrl,
+        //         'method' => 'GET',
+        //         'parameters' => $input_array,
+        //         'query_string' => $input_url_encoded_string,
+        //     ],
+        // ]);
 
         $response = Http::get($apiUrl . '?' . $input_url_encoded_string);
 
