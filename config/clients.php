@@ -71,7 +71,7 @@ return [
     ],
     '96bmcredit' => [
         'uat' => [
-            'applicant_bank_code' => 'BO96B',
+            'applicant_bank_code' => 'UOVBSGSGXXX',
             'bo_name' => '96BM CREDIT PTE LTD',
             'client_id' => 'BO96B2532M0196B',
             'x-api-key' => 'c11287ac-1ca3-445b-a9ae-1bae619fc987',
