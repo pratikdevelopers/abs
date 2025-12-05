@@ -21,8 +21,8 @@ class EgiroService
             'requestID' => $this->createRequestID(),
             'requestType' => $requestType,
             'segment' => $segment,
-            'timestamp' => now()->toIso8601String(),
             'nonce' => $this->createNonce(),
+            'timestamp' => $this->createTimestamp()
         ];
 
         return $input_array_obj;
