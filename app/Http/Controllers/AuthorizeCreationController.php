@@ -39,7 +39,7 @@ class AuthorizeCreationController extends Controller
 
         $response_url = $this->cURL_eDDA_Create($fullUrl);
 
-        return Redirect::to($response_url);
+        return $response_url;
 
         $response = Http::get($apiUrl . '?' . $input_url_encoded_string);
 
