@@ -49,6 +49,8 @@ class AuthorizeCreationController extends Controller
 
         // $response_url = $this->cURL_eDDA_Create($fullUrl);
 
+        return Redirect::to($fullUrl);
+
         return response()->json([
             'message' => 'Authorize creation',
             'request' => [
