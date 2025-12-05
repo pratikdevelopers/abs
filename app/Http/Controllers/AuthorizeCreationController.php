@@ -34,7 +34,7 @@ class AuthorizeCreationController extends Controller
         // return response()->json($response->json());
         return response()->json([
             'message' => 'Authorize creation successful',
-            'data' => config('abs.' . env('APP_ENV') . '.authorize_creation.api_url') . '?' . $input_url_encoded_string,
+            'data' => config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url') . '?' . $input_url_encoded_string,
         ]);
     }
 }
