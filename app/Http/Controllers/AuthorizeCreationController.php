@@ -83,8 +83,11 @@ class AuthorizeCreationController extends Controller
 
     public function sign($query_param, $client_slug)
     {
+        $gpg = new Crypt_GPG([
+            'homedir' => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'gpg-' . bin2hex(random_bytes(6)),
+            'armor' => true,
+        ]);
         $egiroService = new EgiroService();
-        $gpg = new Crypt_GPG();
         $gpg->addSignKey(config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.fingerprint'), config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'));
         $signature = $egiroService->encodeURIComponent(
             $gpg->sign($query_param, config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
