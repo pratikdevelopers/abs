@@ -32,9 +32,15 @@ class AuthorizeCreationController extends Controller
             'signature' => 'nullable|string',
         ]);
         if ($validator->fails()) {
+            $errors = [];
+            foreach ($validator->errors()->all() as $error) {
+                $errors[] = [
+                    'errorCode' => 'AG0001',
+                    'errorMessage' => $error,
+                ];
+            }
             return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
+                'errors' => $errors,
             ], 422);
         }
 
@@ -42,7 +48,12 @@ class AuthorizeCreationController extends Controller
         $clientConfig = config('clients.' . $clientSlug);
         if (!is_array($clientConfig) || empty($clientConfig[env('APP_ENV')])) {
             return response()->json([
-                'message' => 'Invalid client configuration',
+                'errors' => [
+                    [
+                        'errorCode' => 'AG0001',
+                        'errorMessage' => 'Invalid client configuration',
+                    ],
+                ],
             ], 422);
         }
         $clientConfig = $clientConfig[env('APP_ENV')];
@@ -77,7 +88,12 @@ class AuthorizeCreationController extends Controller
         $pgpConfig = $clientConfig['pgp'] ?? [];
         if (empty($pgpConfig)) {
             return response()->json([
-                'message' => 'Missing PGP configuration for client',
+                'errors' => [
+                    [
+                        'errorCode' => 'AG1001',
+                        'errorMessage' => 'Missing PGP configuration for client',
+                    ],
+                ],
             ], 422);
         }
 
@@ -87,7 +103,12 @@ class AuthorizeCreationController extends Controller
 
         if (!$privateKeyPath || !file_exists($privateKeyPath)) {
             return response()->json([
-                'message' => 'Issuer private key not found',
+                'errors' => [
+                    [
+                        'errorCode' => 'AG1001',
+                        'errorMessage' => 'Issuer private key not found',
+                    ],
+                ],
             ], 422);
         }
 
@@ -111,7 +132,14 @@ class AuthorizeCreationController extends Controller
         // Generate signature
         $signature = $this->generateSignature($signatureParams, $privateKeyPath, $passphrase, $issuerFingerprint);
         if ($signature === false) {
-            return response()->json(['message' => 'Signature generation failed'], 500);
+            return response()->json([
+                'errors' => [
+                    [
+                        'errorCode' => 'AG1001',
+                        'errorMessage' => 'Signature generation failed',
+                    ],
+                ],
+            ], 500);
         }
 
         // Replace %25 with % in signature (as per API specification)
@@ -241,8 +269,12 @@ class AuthorizeCreationController extends Controller
             $error = curl_error($ch);
             curl_close($ch);
             return response()->json([
-                'message' => 'cURL request failed',
-                'error' => $error,
+                'errors' => [
+                    [
+                        'errorCode' => 'AG5001',
+                        'errorMessage' => 'cURL request failed: ' . $error,
+                    ],
+                ],
                 'request_data' => [
                     'url' => $fullUrl,
                     'request_params_string' => $requestParamsString,
@@ -262,6 +294,12 @@ class AuthorizeCreationController extends Controller
         // Check if request failed
         if ($httpCode >= 400) {
             return response()->json([
+                'errors' => [
+                    [
+                        'errorCode' => 'AG' . str_pad($httpCode, 4, '0', STR_PAD_LEFT),
+                        'errorMessage' => 'Request failed with HTTP status ' . $httpCode,
+                    ],
+                ],
                 'request_data' => [
                     'url' => $fullUrl,
                     'request_params_string' => $requestParamsString,
