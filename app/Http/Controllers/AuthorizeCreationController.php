@@ -42,9 +42,9 @@ class AuthorizeCreationController extends Controller
         $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
         $fullUrl = $apiUrl . '?' . $input_url_encoded_string;
 
-        $response_url = $this->cURL_eDDA_Create($fullUrl);
+        // $response_url = $this->cURL_eDDA_Create($fullUrl);
 
-        return $response_url;
+        return $fullUrl;
 
         $response = Http::get($apiUrl . '?' . $input_url_encoded_string);
 
