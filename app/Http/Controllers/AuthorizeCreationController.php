@@ -27,9 +27,14 @@ class AuthorizeCreationController extends Controller
         $input_url_encoded_string = http_build_query($input_array, null, null, PHP_QUERY_RFC3986);
         $input_url_encoded_string = str_replace('%25', '%', $input_url_encoded_string);
         $input_url_encoded_string = str_replace('%20', ' ', $input_url_encoded_string);
+
+        $privateKeyPath = config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key');
+        $passphrase = config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase');
+        $keyFingerprint = config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.fingerprint');
+
         $signature = $egiroService->encodeURIComponent(
             $egiroService->encodeURIComponent(
-                $gpgService->sign($input_url_encoded_string, config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.private_key'), config('clients.' . $request->client_slug . '.' . env('APP_ENV') . '.pgp.passphrase'))
+                $gpgService->sign($input_url_encoded_string, $privateKeyPath, $passphrase, $keyFingerprint)
             )
         );
         // $signature = $egiroService->encodeURIComponent(
