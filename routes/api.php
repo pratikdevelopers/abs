@@ -13,5 +13,4 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/banks', [BankController::class, 'index']);
 Route::get('/connectivity-test', [ConnectivityTestController::class, 'index']);
-Route::get('/authorize-creation', [AuthorizeCreationController::class, 'createAuthorize']);
 Route::get('/edda-status', [EddaStatusController::class, 'getStatus']);
