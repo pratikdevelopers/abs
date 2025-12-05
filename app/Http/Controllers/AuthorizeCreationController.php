@@ -222,7 +222,7 @@ class AuthorizeCreationController extends Controller
 
 
     /**
-     * Make HTTP request to authorize creation API using cURL
+     * Make HTTP request to authorize creation API using Laravel HTTP facade
      * Follows redirects and returns the effective URL
      */
     private function makeApiRequest(string $requestParamsString, array $clientConfig, string $requestId): JsonResponse|RedirectResponse
@@ -231,48 +231,82 @@ class AuthorizeCreationController extends Controller
         
         // Build headers
         $headers = [
-            'clientID: ' . $clientConfig['client_id'],
-            'requestID: ' . $requestId,
-            'x-api-key: ' . $clientConfig['x-api-key'],
-            'aggregatorKeyAlias: ' . $clientConfig['aggregator_key_alias'],
+            'clientID' => $clientConfig['client_id'],
+            'requestID' => $requestId,
+            'x-api-key' => $clientConfig['x-api-key'],
+            'aggregatorKeyAlias' => $clientConfig['aggregator_key_alias'],
         ];
 
         // Add optional signKeyAlias if available
         if (!empty($clientConfig['sign_key_alias'])) {
-            $headers[] = 'signKeyAlias: ' . $clientConfig['sign_key_alias'];
+            $headers['signKeyAlias'] = $clientConfig['sign_key_alias'];
         }
 
-        // Use cURL to make HEAD request and follow redirects
-        $ch = curl_init();
-        
         // Build the full URL with query string
         $fullUrl = $url . '?' . $requestParamsString;
-        
-        // Set the URL - cURL will validate it
-        curl_setopt($ch, CURLOPT_URL, $fullUrl);
-        curl_setopt($ch, CURLOPT_HEADER, true); // Get header
-        curl_setopt($ch, CURLOPT_NOBODY, true); // HEAD request (do not include response body)
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Return response instead of outputting
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Follow redirects
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-        // Set SSL certificate and key for mutual TLS
-        // curl_setopt($ch, CURLOPT_SSLCERT, storage_path('app/certs/uobuat_sivren_org.crt'));
-        // curl_setopt($ch, CURLOPT_SSLKEY, storage_path('app/certs/uobuat_sivren_org.pem'));
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
 
-        curl_exec($ch);
-        
-        // Check for cURL errors
-        if (curl_errno($ch)) {
-            $error = curl_error($ch);
-            curl_close($ch);
+        try {
+            // Track the final URL after redirects
+            $effectiveUrl = $fullUrl;
+            
+            // Make HEAD request and follow redirects
+            $http = Http::withOptions([
+                'cert' => storage_path('app/certs/uobuat_sivren_org.crt'),
+                'ssl_key' => storage_path('app/certs/uobuat_sivren_org.pem'),
+                'allow_redirects' => [
+                    'max' => 10,
+                    'strict' => false,
+                    'referer' => true,
+                    'protocols' => ['http', 'https'],
+                    'track_redirects' => true,
+                ],
+                'on_stats' => function ($stats) use (&$effectiveUrl) {
+                    if ($stats->hasResponse() && $stats->getEffectiveUri()) {
+                        $effectiveUrl = (string) $stats->getEffectiveUri();
+                    }
+                },
+            ])->withHeaders($headers);
+
+            // Use head() method to make HEAD request (follows redirects by default)
+            $response = $http->head($fullUrl);
+            
+            $httpCode = $response->status();
+            
+            // If we have a Location header and status is redirect, use it
+            if (in_array($httpCode, [301, 302, 303, 307, 308]) && $response->header('Location')) {
+                $effectiveUrl = $response->header('Location');
+            }
+
+            // Check if request failed
+            if ($response->failed()) {
+                return response()->json([
+                    'errors' => [
+                        [
+                            'errorCode' => 'AG' . str_pad($httpCode, 4, '0', STR_PAD_LEFT),
+                            'errorMessage' => 'Request failed with HTTP status ' . $httpCode,
+                        ],
+                    ],
+                    'request_data' => [
+                        'url' => $fullUrl,
+                        'request_params_string' => $requestParamsString,
+                        'timestamp' => now()->format('Y-m-d H:i:s'),
+                    ],
+                    'response_data' => [
+                        'status' => $httpCode,
+                        'effective_url' => $effectiveUrl,
+                    ],
+                ], $httpCode);
+            }
+
+            // Redirect to the authorization URL
+            return Redirect::to($effectiveUrl);
+
+        } catch (\Throwable $e) {
             return response()->json([
                 'errors' => [
                     [
                         'errorCode' => 'AG5001',
-                        'errorMessage' => 'cURL request failed: ' . $error,
+                        'errorMessage' => 'HTTP request failed: ' . $e->getMessage(),
                     ],
                 ],
                 'request_data' => [
@@ -282,38 +316,6 @@ class AuthorizeCreationController extends Controller
                 ],
             ], 500);
         }
-
-        // Get HTTP status code
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
-        // Get the effective URL after following redirects
-        $effectiveUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        
-        curl_close($ch);
-
-        // Check if request failed
-        if ($httpCode >= 400) {
-            return response()->json([
-                'errors' => [
-                    [
-                        'errorCode' => 'AG' . str_pad($httpCode, 4, '0', STR_PAD_LEFT),
-                        'errorMessage' => 'Request failed with HTTP status ' . $httpCode,
-                    ],
-                ],
-                'request_data' => [
-                    'url' => $fullUrl,
-                    'request_params_string' => $requestParamsString,
-                    'timestamp' => now()->format('Y-m-d H:i:s'),
-                ],
-                'response_data' => [
-                    'status' => $httpCode,
-                    'effective_url' => $effectiveUrl,
-                ],
-            ], $httpCode);
-        }
-
-        // Redirect to the authorization URL
-        return Redirect::to($effectiveUrl);
     }
 
     /**
