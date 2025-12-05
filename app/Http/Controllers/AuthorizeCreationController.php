@@ -30,11 +30,53 @@ class AuthorizeCreationController extends Controller
         );
         $signature = str_replace('%25', '%', $signature);
         $input_url_encoded_string .= '&signature=' . $signature;
-        $response = Http::get(config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url'), $input_url_encoded_string);
-        return response()->json($response->json());
-        return response()->json([
-            'message' => 'Authorize creation successful',
-            'data' => config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url') . '?' . $input_url_encoded_string,
-        ]);
+        $apiUrl = config('abs.' . env('APP_ENV') . '.authorizeCreation.api_url');
+        $fullUrl = $apiUrl . '?' . $input_url_encoded_string;
+        
+        $response = Http::get($apiUrl . '?' . $input_url_encoded_string);
+        
+        // Build comprehensive response
+        $responseData = [
+            'success' => $response->successful(),
+            'status_code' => $response->status(),
+            'message' => $response->successful() ? 'Authorization request processed successfully' : 'Authorization request failed',
+            'timestamp' => now()->toIso8601String(),
+            'request' => [
+                'url' => $apiUrl,
+                'full_url' => $fullUrl,
+                'method' => 'GET',
+                'parameters' => $input_array,
+                'query_string' => $input_url_encoded_string,
+            ],
+            'response' => [
+                'headers' => $response->headers(),
+                'body' => $response->json() ?? $response->body(),
+                'status' => $response->status(),
+            ],
+        ];
+        
+        // Add redirect information if it's a 302 redirect
+        if ($response->status() === 302) {
+            $location = $response->header('Location');
+            $responseData['redirect'] = [
+                'status' => 302,
+                'location' => $location,
+                'redirect_url' => $location,
+            ];
+            $responseData['message'] = 'Authorization redirect received';
+        }
+        
+        // Add error information if request failed
+        if ($response->failed()) {
+            $responseData['errors'] = [
+                [
+                    'errorCode' => 'AG' . str_pad($response->status(), 4, '0', STR_PAD_LEFT),
+                    'errorMessage' => 'Authorization request failed',
+                    'details' => $response->body(),
+                ],
+            ];
+        }
+        
+        return response()->json($responseData, $response->status() ?: 200);
     }
 }
