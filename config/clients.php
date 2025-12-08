@@ -171,6 +171,40 @@ return [
             ]
         ],
     ],
+    '111credit' => [
+        'uat' => [
+            'applicant_bank_code' => 'UOVBSGS0XXX',
+            'bo_name' => '1 1 1 CREDIT PTE LTD',
+            'client_id' => 'BO1X19191C01111',
+            'x-api-key' => 'e521c5f3-3db5-45f6-b55d-e7dc19ec05ac',
+            'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
+            'sign_key_alias' => 'BO111201919191C_BU01_UAT_PGP_PUBLICKEY_PRIMARY_576001',
+            'pgp' => [
+                'issuer_id' => 'uobuat@sivren.com',
+                'passphrase' => 'pgpss2025',
+                'fingerprint' => '4CA8AD8EAA3A29E33765A659326E636F574ACFDA',
+                'issuer_key_id' => '326E636F574ACFDA',
+                'public_key' => storage_path('app/pgp/public.asc'),
+                'private_key' => storage_path('app/pgp/private.asc'),
+            ]
+        ],
+        'production' => [
+            'applicant_bank_code' => '',
+            'bo_name' => '',
+            'client_id' => '',
+            'x-api-key' => '',
+            'aggregator_key_alias' => '',
+            'sign_key_alias' => '',
+            'pgp' => [
+                'issuer_id' => '',
+                'passphrase' => '',
+                'fingerprint' => '',
+                'issuer_key_id' => '',
+                'public_key' => storage_path('app/pgp/public.asc'),
+                'private_key' => storage_path('app/pgp/private.asc'),
+            ]
+        ],
+    ],
     'moneywise-credit' => [
         'uat' => [
             'applicant_bank_code' => 'UOVBSGS0XXX',
