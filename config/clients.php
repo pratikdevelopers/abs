@@ -137,6 +137,40 @@ return [
             ]
         ],
     ],
+    'goldstarcredit' => [
+        'uat' => [
+            'applicant_bank_code' => 'UOVBSGS0XXX',
+            'bo_name' => 'Goldstar Credit Pte. Ltd.',
+            'client_id' => 'BOGOL3881E01GOL',
+            'x-api-key' => 'f47d8e50-d52b-4bf7-93af-3bc26e38d35f',
+            'aggregator_key_alias' => 'AGGREGATOR5_UAT_PGP_PRIMARY',
+            'sign_key_alias' => 'BOGOL200923881E_BU01_UAT_PGP_PUBLICKEY_PRIMARY_934888',
+            'pgp' => [
+                'issuer_id' => 'uobuat@sivren.com',
+                'passphrase' => 'pgpss2025',
+                'fingerprint' => '4CA8AD8EAA3A29E33765A659326E636F574ACFDA',
+                'issuer_key_id' => '326E636F574ACFDA',
+                'public_key' => storage_path('app/pgp/public.asc'),
+                'private_key' => storage_path('app/pgp/private.asc'),
+            ]
+        ],
+        'production' => [
+            'applicant_bank_code' => '',
+            'bo_name' => '',
+            'client_id' => '',
+            'x-api-key' => '',
+            'aggregator_key_alias' => '',
+            'sign_key_alias' => '',
+            'pgp' => [
+                'issuer_id' => '',
+                'passphrase' => '',
+                'fingerprint' => '',
+                'issuer_key_id' => '',
+                'public_key' => storage_path('app/pgp/public.asc'),
+                'private_key' => storage_path('app/pgp/private.asc'),
+            ]
+        ],
+    ],
     'moneywise-credit' => [
         'uat' => [
             'applicant_bank_code' => 'UOVBSGS0XXX',
