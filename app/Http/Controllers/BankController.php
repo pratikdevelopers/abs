@@ -25,7 +25,7 @@ class BankController extends Controller
         }
 
         $clientSlug = $request->string('client_slug');
-        $clientConfig = config('clients.' . $clientSlug);
+        $clientConfig = config('egiro_clients.' . $clientSlug);
         if (!is_array($clientConfig) || empty($clientConfig[env('APP_ENV')])) {
             return response()->json([
                 'message' => 'Invalid client configuration',
@@ -48,9 +48,9 @@ class BankController extends Controller
         $requestParams = http_build_query($input_array_obj, '', '&', PHP_QUERY_RFC3986);
 
         try {
-            $privateKeyPath = config('clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.private_key');
-            $passphrase = config('clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.passphrase');
-            $keyFingerprint = config('clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.fingerprint');
+            $privateKeyPath = config('egiro_clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.private_key');
+            $passphrase = config('egiro_clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.passphrase');
+            $keyFingerprint = config('egiro_clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.fingerprint');
             $egiroService = new EgiroService();
             $signature = $egiroService->encodeURIComponent(
                 $gpgService->sign($requestParams, $privateKeyPath, $passphrase, $keyFingerprint)

@@ -10,13 +10,13 @@ class EgiroService
     public function createAuthorize($client_slug, $requestType, $segment, $input_array = [])
     {
         $input_array_obj = [
-            'applicantBankCode' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.applicant_bank_code'),
+            'applicantBankCode' => config('egiro_clients.' . $client_slug . '.' . env('APP_ENV') . '.applicant_bank_code'),
             'boDDARefNo' => $this->createboDDARefNo(),
             // 'boDDARefNo' => $input_array['boDDARefNo'],
-            'boName' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.bo_name'),
+            'boName' => config('egiro_clients.' . $client_slug . '.' . env('APP_ENV') . '.bo_name'),
             'boTransactionRefNo' => $this->createTransactionReference($client_slug),
             // 'boTransactionRefNo' => $input_array['boTransactionRefNo'],
-            'clientID' => config('clients.' . $client_slug . '.' . env('APP_ENV') . '.client_id'),
+            'clientID' => config('egiro_clients.' . $client_slug . '.' . env('APP_ENV') . '.client_id'),
             'purpose' => 'LOAN',
             'requestID' => $this->createRequestID(),
             'requestType' => $requestType,
@@ -30,7 +30,7 @@ class EgiroService
 
     public function createTransactionReference($client_slug)
     {
-        $edda_client_id = config('clients.' . $client_slug . '.' . env('APP_ENV') . '.client_id');
+        $edda_client_id = config('egiro_clients.' . $client_slug . '.' . env('APP_ENV') . '.client_id');
         $date = new DateTime();
         $date_output_transref = $date->format('YmdHis');
         $six_digit_random_number = random_int(100000, 999999);

@@ -29,7 +29,7 @@ class EddaStatusController extends Controller
         }
 
         $clientSlug = $request->string('client_slug');
-        $clientConfig = config('clients.' . $clientSlug);
+        $clientConfig = config('egiro_clients.' . $clientSlug);
         
         if (!is_array($clientConfig) || empty($clientConfig[env('APP_ENV')])) {
             return response()->json([
