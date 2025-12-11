@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\EgiroService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
@@ -50,8 +51,8 @@ class BankController extends Controller
             $privateKeyPath = config('clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.private_key');
             $passphrase = config('clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.passphrase');
             $keyFingerprint = config('clients.' . $clientSlug . '.' . env('APP_ENV') . '.pgp.fingerprint');
-
-            $signature = $this->encodeURIComponent(
+            $egiroService = new EgiroService();
+            $signature = $egiroService->encodeURIComponent(
                 $gpgService->sign($requestParams, $privateKeyPath, $passphrase, $keyFingerprint)
             );
             $signature = str_replace('%25', '%', $signature);
@@ -76,18 +77,5 @@ class BankController extends Controller
             'message' => 'Bank list',
             'data' => $response->json(),
         ]);
-    }
-
-    public function encodeURIComponent($query_param)
-    {
-        $revert = [
-            '%21' => '!',
-            '%2A' => '*',
-            '%27' => "'",
-            '%28' => '( ',
-            '%29' => ' )',
-        ];
-
-        return strtr(rawurlencode($query_param), $revert);
     }
 }
